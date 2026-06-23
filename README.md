@@ -39,8 +39,8 @@ Todas con **D = 10 dimensiones**, colonia de **N = 100** abejas y **5 000 ciclos
 
 ```
 .
-├── gabc_benchmark.py       # Código fuente principal
-├── GABC_corregido.ipynb    # Notebook con explicaciones y visualizaciones
+├── GABC_Fuentek.py       # Código fuente principal
+├── GABC_cuaderno_explicacion.ipynb    # Notebook con explicaciones y visualizaciones
 └── README.md
 ```
 
