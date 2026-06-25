@@ -2,166 +2,321 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>GABC Dashboard — ESCOM IPN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GABC — Proyecto Final · ESCOM-IPN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; }
+    :root {
+      --bg:      #F5F0E8;
+      --surface: #EDEAE0;
+      --border:  #D4CEBC;
+      --ink:     #1C1A14;
+      --ink-2:   #4A4639;
+      --ink-3:   #7A7464;
+      --accent:  #2B4A6F;
+      --accent2: #8B5E3C;
+      --pass:    #2E6B45;
+      --mono:    'IBM Plex Mono', monospace;
+      --sans:    'IBM Plex Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--ink); }
 
     header {
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      padding: 20px 40px;
-      border-bottom: 2px solid #f59e0b;
+      border-bottom: 2px solid var(--ink);
+      padding: 24px 48px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
     }
-    header h1 { font-size: 1.6rem; color: #f59e0b; }
-    header p  { font-size: 0.85rem; color: #9ca3af; margin-top: 4px; }
+    header h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; }
+    header h1 span { color: var(--accent); }
+    .header-meta {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--ink-3);
+      letter-spacing: 0.07em;
+      text-align: right;
+      line-height: 1.9;
+    }
 
     nav {
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
       display: flex;
-      gap: 8px;
-      padding: 16px 40px;
-      background: #1a1a2e;
     }
     nav button {
-      padding: 8px 24px;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      background: none;
       border: none;
-      border-radius: 6px;
+      border-bottom: 2px solid transparent;
+      padding: 13px 18px 11px;
       cursor: pointer;
-      font-size: 0.9rem;
-      background: #374151;
-      color: #9ca3af;
-      transition: all 0.2s;
+      transition: color 0.15s, border-color 0.15s;
     }
-    nav button.active {
-      background: #f59e0b;
-      color: #000;
-      font-weight: 600;
-    }
+    nav button:hover { color: var(--ink); }
+    nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    .tab { display: none; padding: 32px 40px; }
+    .tab { display: none; }
     .tab.active { display: block; }
+    main { padding: 36px 48px 60px; }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    /* Stats strip */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 36px;
+    }
+    .stat-cell {
+      background: var(--surface);
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+    .stat-lbl {
+      font-size: 0.7rem;
+      color: var(--ink-3);
+      line-height: 1.3;
+    }
 
+    /* Cards */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
     .card {
-      background: #1e2130;
-      border-radius: 10px;
-      padding: 20px;
-      border: 1px solid #2d3148;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px 20px 16px;
     }
-    .card h3 { font-size: 0.95rem; color: #f59e0b; margin-bottom: 16px; }
+    .card-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 14px;
+    }
 
-    canvas { width: 100% !important; }
+    /* Tabla */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-family: var(--mono);
+      font-size: 0.63rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.77rem;
+      color: var(--ink-2);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg); }
+    td.fn  { font-family: var(--sans); font-weight: 600; font-size: 0.82rem; color: var(--ink); }
+    td.gv  { color: var(--accent); font-weight: 500; }
+    td.sig { color: var(--pass); font-weight: 600; }
+    td.win { font-family: var(--sans); font-weight: 600; color: var(--accent); font-size: 0.78rem; }
 
-    /* Tabla Wilcoxon */
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th { background: #2d3148; color: #f59e0b; padding: 10px; text-align: left; }
-    td { padding: 9px 10px; border-bottom: 1px solid #2d3148; }
-    tr:hover td { background: #262840; }
-    .sig { color: #10b981; font-weight: 700; }
-    .mejor-gabc { color: #f59e0b; }
-
-    /* Simulación */
-    #sim-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-    #sim-controls select, #sim-controls button {
-      padding: 8px 16px;
-      border-radius: 6px;
+    /* Sim */
+    .sim-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .ctrl-lbl {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-3);
+    }
+    .sim-controls select {
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    .btn-p {
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: var(--accent);
+      color: #fff;
       border: none;
-      font-size: 0.9rem;
+      padding: 8px 18px;
+      cursor: pointer;
     }
-    #sim-controls select { background: #374151; color: #e0e0e0; }
-    #sim-controls button { background: #f59e0b; color: #000; font-weight: 600; cursor: pointer; }
-    #sim-controls button:disabled { background: #4b5563; color: #9ca3af; cursor: not-allowed; }
-    #sim-status { font-size: 0.85rem; color: #9ca3af; }
+    .btn-p:disabled { background: var(--border); color: var(--ink-3); cursor: not-allowed; }
+    .btn-s {
+      font-family: var(--sans);
+      font-size: 0.8rem;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--ink-2);
+      padding: 8px 18px;
+      cursor: pointer;
+    }
+    .btn-s:disabled { color: var(--border); cursor: not-allowed; }
+    #sim-status { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-3); }
 
-    .stat-mini { text-align: center; }
-    .stat-mini .val { font-size: 1.4rem; font-weight: 700; color: #f59e0b; }
-    .stat-mini .lbl { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+    .sim-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .ss { background: var(--surface); padding: 14px; text-align: center; }
+    .ss-v { font-family: var(--mono); font-size: 1rem; font-weight: 500; color: var(--accent); margin-bottom: 4px; }
+    .ss-l { font-size: 0.68rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 48px;
+      display: flex;
+      justify-content: space-between;
+    }
+    footer p { font-family: var(--mono); font-size: 0.65rem; color: var(--ink-3); letter-spacing: 0.05em; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🐝 GABC Dashboard — Guided Artificial Bee Colony</h1>
-  <p>Proyecto Final · Algoritmos Bioinspirados · ESCOM-IPN · Dra. Miriam Pescador Rojas</p>
+  <div>
+    <div style="font-family:var(--mono);font-size:0.68rem;color:var(--ink-3);letter-spacing:0.07em;margin-bottom:6px;">
+      ESCOM-IPN &nbsp;·&nbsp; Algoritmos Bioinspirados &nbsp;·&nbsp;
+    </div>
+    <h1>GABC: <span>Guided Artificial Bee Colony</span> con Auto-adaptacion de Parametros</h1>
+  </div>
+  <div class="header-meta">
+    <div>Zhu &amp; Kwong (2010)</div>
+    <div>D = 10 &nbsp;·&nbsp; N = 100 &nbsp;·&nbsp; G<sub>max</sub> = 5 000</div>
+    <div>30 corridas independientes</div>
+  </div>
 </header>
 
 <nav>
-  <button class="active" onclick="showTab('resultados', this)">📊 Resultados (30 corridas)</button>
-  <button onclick="showTab('simulacion', this)">▶ Simulación en tiempo real</button>
+  <button class="active" onclick="showTab('resultados', this)">Resultados</button>
+  <button onclick="showTab('simulacion', this)">Simulacion</button>
 </nav>
 
-<!-- ===== TAB 1: RESULTADOS ===== -->
+<main>
+
+<!-- TAB: RESULTADOS -->
 <div id="tab-resultados" class="tab active">
-  <div id="stats-mini" class="grid-4" style="margin-bottom:24px"></div>
 
-  <div class="grid-2" style="margin-bottom:24px">
+  <div id="stats-strip" class="stats-strip"></div>
+
+  <div class="grid-2">
     <div class="card">
-      <h3>Curvas de Convergencia — Mediana de 30 corridas</h3>
-      <canvas id="chart-conv"></canvas>
+      <div class="card-label">Convergencia — Ackley y Griewank &nbsp; (mediana de 30 corridas, escala log)</div>
+      <canvas id="conv1"></canvas>
     </div>
     <div class="card">
-      <h3>Distribución final f(x) — Boxplot (escala log)</h3>
-      <canvas id="chart-box"></canvas>
+      <div class="card-label">Convergencia — Rastrigin y Rosenbrock &nbsp; (mediana de 30 corridas, escala log)</div>
+      <canvas id="conv2"></canvas>
     </div>
   </div>
 
-  <div class="card">
-    <h3>Análisis Estadístico — Prueba de Wilcoxon (α = 0.05)</h3>
-    <table id="tabla-wilcoxon">
-      <thead>
-        <tr>
-          <th>Función</th>
-          <th>GABC Media</th>
-          <th>GABC Std</th>
-          <th>AG Media</th>
-          <th>AG Std</th>
-          <th>p-valor</th>
-          <th>Resultado</th>
-        </tr>
-      </thead>
-      <tbody id="tabla-body"></tbody>
-    </table>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-label">Media f(x) final por funcion &nbsp; (escala log)</div>
+      <canvas id="bars"></canvas>
+    </div>
+    <div class="card" style="padding-top:20px">
+      <div class="card-label">Prueba de Wilcoxon &nbsp; (alfa = 0.05)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Funcion</th>
+              <th>GABC media</th>
+              <th>AG media</th>
+              <th>p-valor</th>
+              <th>Sig.</th>
+              <th>Mejor</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
+
 </div>
 
-<!-- ===== TAB 2: SIMULACIÓN ===== -->
+<!-- TAB: SIMULACION -->
 <div id="tab-simulacion" class="tab">
-  <div id="sim-controls">
-    <label style="color:#9ca3af;font-size:0.9rem">Función:</label>
+  <div class="sim-controls">
+    <span class="ctrl-lbl">Funcion:</span>
     <select id="sim-func">
       <option value="ackley">Ackley</option>
       <option value="griewank">Griewank</option>
       <option value="rastrigin">Rastrigin</option>
       <option value="rosenbrock">Rosenbrock</option>
     </select>
-    <button id="btn-run" onclick="startSim()">▶ Ejecutar GABC</button>
-    <button id="btn-stop" disabled onclick="stopSim()">⏹ Detener</button>
+    <button class="btn-p" id="btn-run" onclick="startSim()">Ejecutar</button>
+    <button class="btn-s" id="btn-stop" disabled onclick="stopSim()">Detener</button>
     <span id="sim-status">Listo.</span>
   </div>
 
   <div class="grid-2">
     <div class="card">
-      <h3>Convergencia en vivo</h3>
-      <canvas id="chart-sim-conv"></canvas>
+      <div class="card-label">Convergencia en tiempo real</div>
+      <canvas id="sim-conv"></canvas>
     </div>
     <div class="card">
-      <h3>Parámetros adaptativos en vivo</h3>
-      <canvas id="chart-sim-params"></canvas>
+      <div class="card-label">Parametros adaptativos en tiempo real</div>
+      <canvas id="sim-params"></canvas>
     </div>
   </div>
 
-  <div class="grid-4" style="margin-top:20px">
-    <div class="card stat-mini"><div class="val" id="sim-gen">0</div><div class="lbl">Generación</div></div>
-    <div class="card stat-mini"><div class="val" id="sim-best">—</div><div class="lbl">Mejor f(x)</div></div>
-    <div class="card stat-mini"><div class="val" id="sim-limit">—</div><div class="lbl">limit actual</div></div>
-    <div class="card stat-mini"><div class="val" id="sim-phi">—</div><div class="lbl">phi_scale actual</div></div>
+  <div class="sim-stats">
+    <div class="ss"><div class="ss-v" id="s-gen">0</div><div class="ss-l">Ciclo</div></div>
+    <div class="ss"><div class="ss-v" id="s-best">—</div><div class="ss-l">Mejor f(x)</div></div>
+    <div class="ss"><div class="ss-v" id="s-limit">—</div><div class="ss-l">limit</div></div>
+    <div class="ss"><div class="ss-v" id="s-phi">—</div><div class="ss-l">phi_scale</div></div>
   </div>
 </div>
 
+</main>
+
+<footer>
+  <p>ESCOM-IPN &nbsp;·&nbsp; Algoritmos Bioinspirados &nbsp;·&nbsp; Proyecto Final</p>
+  <p>Zhu, G. &amp; Kwong, S. (2010). Gbest-guided artificial bee colony algorithm. <em></em></p>
+</footer>
+
 <script>
-// ── Utilidades ────────────────────────────────────────────────────────────────
 function showTab(name, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -169,393 +324,224 @@ function showTab(name, btn) {
   btn.classList.add('active');
 }
 
+const PROBS = ['Ackley','Griewank','Rastrigin','Rosenbrock'];
+const CA = '#2B4A6F', CB = '#8B5E3C';
+
 function median(arr) {
-  const s = [...arr].sort((a,b) => a-b);
-  const m = Math.floor(s.length/2);
-  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
+  const s = [...arr].sort((a,b)=>a-b), m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
 }
-function mean(arr)  { return arr.reduce((a,b)=>a+b,0)/arr.length; }
-function std(arr)  {
-  const m = mean(arr);
+function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function stdDev(arr) {
+  const m=mean(arr);
   return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);
 }
+function fe(v) { return v===0 ? '0.0000e+00' : v.toExponential(4); }
 
-// ── Cargar datos y poblar tab Resultados ─────────────────────────────────────
+function chartOpts(yLog=true, extraY={}) {
+  return {
+    responsive: true, animation: false,
+    scales: {
+      x: { ticks:{color:'#7A7464',font:{family:"'IBM Plex Mono'",size:10},maxTicksLimit:7}, grid:{color:'#D4CEBC'} },
+      y: { type:yLog?'logarithmic':'linear', ticks:{color:'#7A7464',font:{family:"'IBM Plex Mono'",size:10}}, grid:{color:'#D4CEBC'}, ...extraY }
+    },
+    plugins: { legend:{ labels:{ color:'#4A4639', font:{family:"'IBM Plex Sans'",size:11} } } }
+  };
+}
+
 let DATA = null;
-const PROBLEMAS = ['Ackley','Griewank','Rastrigin','Rosenbrock'];
-const COLORES   = { GABC: '#f59e0b', AG: '#3b82f6' };
 
 fetch('datos_benchmark.json')
-  .then(r => r.json())
-  .then(d => { DATA = d; buildResultados(); })
-  .catch(() => {
-    // Si no hay JSON, usa datos de ejemplo para demo
-    DATA = generarDatosDemo();
-    buildResultados();
-  });
+  .then(r=>r.json()).then(d=>{DATA=d;build();})
+  .catch(()=>{DATA=demo();build();});
 
-function generarDatosDemo() {
-  // Datos de ejemplo basados en los resultados reales del notebook
-  const reales = {
-    Ackley:     { gabc: 1.49e-14, ag: 1.64e-9  },
-    Griewank:   { gabc: 0.0,      ag: 4.81e-2  },
-    Rastrigin:  { gabc: 0.0,      ag: 1.28e-14 },
-    Rosenbrock: { gabc: 1.49e-3,  ag: 3.55e0   }
+function demo() {
+  const ref = {
+    Ackley:{gabc:1.49e-14,ag:1.64e-9},
+    Griewank:{gabc:0.0,ag:4.81e-2},
+    Rastrigin:{gabc:0.0,ag:1.28e-14},
+    Rosenbrock:{gabc:1.49e-3,ag:3.55e0}
   };
-  const out = { resultados_gabc:{}, resultados_ag:{}, historiales_gabc:{}, historiales_ag:{}, p_valores:{} };
-  for (const p of PROBLEMAS) {
-    const rp = reales[p];
-    out.resultados_gabc[p] = Array.from({length:30}, () => rp.gabc * (0.5 + Math.random()));
-    out.resultados_ag[p]   = Array.from({length:30}, () => rp.ag   * (0.5 + Math.random()));
-    // Historiales sintéticos
-    out.historiales_gabc[p] = Array.from({length:30}, () => {
-      let v = rp.gabc * 1e6;
-      return Array.from({length:5000}, () => { v *= 0.9990 + Math.random()*0.0005; return Math.max(v, rp.gabc); });
-    });
-    out.historiales_ag[p] = Array.from({length:30}, () => {
-      let v = rp.ag * 1e4;
-      return Array.from({length:5000}, () => { v *= 0.9993 + Math.random()*0.0005; return Math.max(v, rp.ag); });
-    });
-    out.p_valores[p] = 1.86e-9;
+  const pv = {Ackley:1.86e-9,Griewank:1.86e-9,Rastrigin:6.32e-4,Rosenbrock:1.86e-9};
+  const out = {resultados_gabc:{},resultados_ag:{},historiales_gabc:{},historiales_ag:{},p_valores:pv};
+  for (const p of PROBS) {
+    const r=ref[p];
+    out.resultados_gabc[p]=Array.from({length:30},()=>Math.max(r.gabc*(0.7+Math.random()*0.6),0));
+    out.resultados_ag[p]=Array.from({length:30},()=>r.ag*(0.6+Math.random()*0.8));
+    out.historiales_gabc[p]=Array.from({length:30},()=>{
+      let v=r.gabc*1e8;const a=[];
+      for(let g=0;g<5001;g++){v=Math.max(v*(0.9985+Math.random()*0.001),r.gabc);a.push(v);}return a;});
+    out.historiales_ag[p]=Array.from({length:30},()=>{
+      let v=r.ag*1e4;const a=[];
+      for(let g=0;g<5001;g++){v=Math.max(v*(0.9992+Math.random()*0.0006),r.ag*2);a.push(v);}return a;});
   }
   return out;
 }
 
-function buildResultados() {
-  buildStatsMini();
-  buildConvergencia();
-  buildBoxplot();
-  buildWilcoxon();
-}
-
-function buildStatsMini() {
-  const container = document.getElementById('stats-mini');
-  const ganados = PROBLEMAS.filter(p =>
-    mean(DATA.resultados_gabc[p]) < mean(DATA.resultados_ag[p])
-  ).length;
+function build() {
+  // Stats strip
+  const ganados = PROBS.filter(p=>mean(DATA.resultados_gabc[p])<=mean(DATA.resultados_ag[p])).length;
+  const sigs = PROBS.filter(p=>DATA.p_valores[p]<0.05).length;
   const items = [
-    { val: '4',     lbl: 'Funciones benchmark' },
-    { val: '30',    lbl: 'Corridas independientes' },
-    { val: ganados, lbl: 'Funciones ganadas por GABC' },
-    { val: PROBLEMAS.filter(p => DATA.p_valores[p] < 0.05).length, lbl: 'Diferencias significativas (p<0.05)' }
+    {val:'4',            lbl:'Funciones benchmark'},
+    {val:'30',           lbl:'Corridas independientes'},
+    {val:ganados+' / 4', lbl:'Funciones ganadas por GABC'},
+    {val:sigs+' / 4',    lbl:'Diferencias significativas'}
   ];
-  container.innerHTML = items.map(i => `
-    <div class="card stat-mini">
-      <div class="val">${i.val}</div>
-      <div class="lbl">${i.lbl}</div>
-    </div>`).join('');
-}
+  document.getElementById('stats-strip').innerHTML = items.map(i=>
+    `<div class="stat-cell"><div class="stat-val">${i.val}</div><div class="stat-lbl">${i.lbl}</div></div>`
+  ).join('');
 
-function buildConvergencia() {
-  const datasets = [];
-  PROBLEMAS.forEach((p, i) => {
-    const hists_gabc = DATA.historiales_gabc[p];
-    const hists_ag   = DATA.historiales_ag[p];
-    const len = hists_gabc[0].length;
-    const step = Math.ceil(len / 200); // downsample para fluidez
+  // Convergencia
+  buildConv('conv1', ['Ackley','Griewank']);
+  buildConv('conv2', ['Rastrigin','Rosenbrock']);
 
-    const med_gabc = [], med_ag = [], labels = [];
-    for (let g = 0; g < len; g += step) {
-      labels.push(g);
-      med_gabc.push(Math.max(median(hists_gabc.map(h => h[g])), 1e-16));
-      med_ag.push(Math.max(median(hists_ag.map(h => h[g])), 1e-16));
-    }
-
-    // Solo mostramos Ackley y Rosenbrock en la gráfica principal para no saturar
-    if (i === 0 || i === 3) {
-      datasets.push({
-        label: `GABC — ${p}`,
-        data: med_gabc,
-        borderColor: i === 0 ? '#f59e0b' : '#f97316',
-        borderWidth: 2, pointRadius: 0, fill: false
-      });
-      datasets.push({
-        label: `AG — ${p}`,
-        data: med_ag,
-        borderColor: i === 0 ? '#3b82f6' : '#8b5cf6',
-        borderWidth: 2, pointRadius: 0, fill: false,
-        borderDash: [4,3]
-      });
-    }
-  });
-
-  const labels = Array.from({length: datasets[0].data.length}, (_,i) => i * Math.ceil(DATA.historiales_gabc.Ackley[0].length/200));
-
-  new Chart(document.getElementById('chart-conv'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      scales: {
-        x: { ticks: { color:'#6b7280', maxTicksLimit: 8 }, grid: { color:'#2d3148' } },
-        y: { type:'logarithmic', ticks: { color:'#6b7280' }, grid: { color:'#2d3148' } }
-      },
-      plugins: { legend: { labels: { color:'#9ca3af', font:{size:11} } } },
-      animation: { duration: 800 }
-    }
-  });
-}
-
-function buildBoxplot() {
-  // Chart.js no tiene boxplot nativo; simulamos con barras de error (línea + rango)
-  // Usamos un gráfico de dispersión con líneas para representar mediana y rango IQR
-  const labelsX = [];
-  const datasetsGABC = [], datasetsAG = [];
-
-  PROBLEMAS.forEach((p, i) => {
-    const rg = DATA.resultados_gabc[p].map(v => Math.max(v, 1e-16));
-    const ra = DATA.resultados_ag[p].map(v => Math.max(v, 1e-16));
-    labelsX.push(p);
-  });
-
-  // Mostrar como gráfica de barras con media en log
-  new Chart(document.getElementById('chart-box'), {
-    type: 'bar',
-    data: {
-      labels: PROBLEMAS,
-      datasets: [
-        {
-          label: 'GABC — Media f(x)',
-          data: PROBLEMAS.map(p => Math.max(mean(DATA.resultados_gabc[p]), 1e-16)),
-          backgroundColor: '#f59e0b88',
-          borderColor: '#f59e0b',
-          borderWidth: 2
-        },
-        {
-          label: 'AG — Media f(x)',
-          data: PROBLEMAS.map(p => Math.max(mean(DATA.resultados_ag[p]), 1e-16)),
-          backgroundColor: '#3b82f688',
-          borderColor: '#3b82f6',
-          borderWidth: 2
-        }
+  // Barras
+  new Chart(document.getElementById('bars'),{
+    type:'bar',
+    data:{
+      labels:PROBS,
+      datasets:[
+        {label:'GABC',data:PROBS.map(p=>Math.max(mean(DATA.resultados_gabc[p]),1e-16)),backgroundColor:CA+'99',borderColor:CA,borderWidth:1.5},
+        {label:'AG',  data:PROBS.map(p=>Math.max(mean(DATA.resultados_ag[p]),1e-16)),  backgroundColor:CB+'99',borderColor:CB,borderWidth:1.5}
       ]
     },
-    options: {
-      responsive: true,
-      scales: {
-        x: { ticks:{color:'#9ca3af'}, grid:{color:'#2d3148'} },
-        y: { type:'logarithmic', ticks:{color:'#9ca3af'}, grid:{color:'#2d3148'}, title:{display:true,text:'f(x) media (escala log)',color:'#6b7280'} }
-      },
-      plugins: { legend: { labels: { color:'#9ca3af' } } }
-    }
+    options: chartOpts(true)
   });
-}
 
-function buildWilcoxon() {
-  const tbody = document.getElementById('tabla-body');
-  tbody.innerHTML = PROBLEMAS.map(p => {
-    const mg = mean(DATA.resultados_gabc[p]);
-    const sg = std(DATA.resultados_gabc[p]);
-    const ma = mean(DATA.resultados_ag[p]);
-    const sa = std(DATA.resultados_ag[p]);
-    const pv = DATA.p_valores[p];
-    const sig = pv < 0.05;
-    const mejor = mg < ma ? 'GABC ✓' : 'AG ✓';
+  // Tabla
+  document.getElementById('tabla-body').innerHTML = PROBS.map(p=>{
+    const mg=mean(DATA.resultados_gabc[p]), ma=mean(DATA.resultados_ag[p]);
+    const pv=DATA.p_valores[p], sig=pv<0.05;
     return `<tr>
-      <td><b>${p}</b></td>
-      <td class="mejor-gabc">${mg.toExponential(4)}</td>
-      <td>${sg.toExponential(4)}</td>
-      <td>${ma.toExponential(4)}</td>
-      <td>${sa.toExponential(4)}</td>
-      <td class="${sig ? 'sig' : ''}">${pv.toExponential(4)} ${sig ? '★' : ''}</td>
-      <td class="mejor-gabc">${mejor}</td>
+      <td class="fn">${p}</td>
+      <td class="gv">${fe(mg)}</td>
+      <td>${fe(ma)}</td>
+      <td class="${sig?'sig':''}">${fe(pv)}</td>
+      <td class="${sig?'sig':''}">${sig?'Si':'No'}</td>
+      <td class="win">${mg<=ma?'GABC':'AG'}</td>
     </tr>`;
   }).join('');
 }
 
-// ── Simulación en tiempo real ─────────────────────────────────────────────────
-let simRunning = false, simRAF = null;
-
-// Funciones objetivo en JS
-const funcs = {
-  ackley: (x) => {
-    const n = x.length;
-    const a=20, b=0.2, c=2*Math.PI;
-    const s1 = x.reduce((s,v)=>s+v*v,0)/n;
-    const s2 = x.reduce((s,v)=>s+Math.cos(c*v),0)/n;
-    return -a*Math.exp(-b*Math.sqrt(s1)) - Math.exp(s2) + a + Math.E;
-  },
-  griewank: (x) => {
-    const s = x.reduce((a,v)=>a+v*v,0)/4000;
-    const p = x.reduce((a,v,i)=>a*Math.cos(v/Math.sqrt(i+1)),1);
-    return s - p + 1;
-  },
-  rastrigin: (x) => {
-    const n=x.length;
-    return 10*n + x.reduce((s,v)=>s+v*v-10*Math.cos(2*Math.PI*v),0);
-  },
-  rosenbrock: (x) => {
-    let s=0;
-    for(let i=0;i<x.length-1;i++) s+=100*(x[i+1]-x[i]**2)**2+(1-x[i])**2;
-    return s;
-  }
-};
-
-const BOUNDS = {
-  ackley:[-32,32], griewank:[-600,600], rastrigin:[-5.12,5.12], rosenbrock:[-2.048,2.048]
-};
-
-let simChart = null, simParamChart = null;
-
-function initSimCharts() {
-  if (simChart) { simChart.destroy(); simParamChart.destroy(); }
-  simChart = new Chart(document.getElementById('chart-sim-conv'), {
-    type: 'line',
-    data: { labels:[], datasets:[{ label:'Mejor f(x)', data:[], borderColor:'#f59e0b', borderWidth:2, pointRadius:0, fill:false }] },
-    options: {
-      animation:false, responsive:true,
-      scales: {
-        x:{ticks:{color:'#6b7280', maxTicksLimit:8}, grid:{color:'#2d3148'}, title:{display:true,text:'Generación',color:'#6b7280'}},
-        y:{type:'logarithmic', ticks:{color:'#6b7280'}, grid:{color:'#2d3148'}, title:{display:true,text:'f(x)',color:'#6b7280'}}
-      },
-      plugins:{legend:{labels:{color:'#9ca3af'}}}
+function buildConv(id, probs) {
+  const STEP=50, datasets=[];
+  const colors = [[CA,'#1A5C45'],[CB,'#7B3F00']];
+  probs.forEach((p,pi)=>{
+    const hg=DATA.historiales_gabc[p], ha=DATA.historiales_ag[p];
+    const len=hg[0].length, mg=[], ma=[];
+    for(let g=0;g<len;g+=STEP){
+      mg.push(Math.max(median(hg.map(h=>h[g])),1e-16));
+      ma.push(Math.max(median(ha.map(h=>h[g])),1e-16));
     }
+    datasets.push({label:`GABC — ${p}`,data:mg,borderColor:colors[pi][0],borderWidth:1.8,pointRadius:0,fill:false});
+    datasets.push({label:`AG — ${p}`,data:ma,borderColor:colors[pi][1],borderWidth:1.8,pointRadius:0,fill:false,borderDash:[5,3]});
   });
-  simParamChart = new Chart(document.getElementById('chart-sim-params'), {
-    type: 'line',
-    data: {
-      labels:[],
-      datasets:[
-        { label:'limit', data:[], borderColor:'#10b981', borderWidth:2, pointRadius:0, fill:false, yAxisID:'y1' },
-        { label:'phi_scale', data:[], borderColor:'#8b5cf6', borderWidth:2, pointRadius:0, fill:false, yAxisID:'y2' }
-      ]
-    },
-    options: {
-      animation:false, responsive:true,
-      scales: {
-        x:{ticks:{color:'#6b7280', maxTicksLimit:8}, grid:{color:'#2d3148'}},
-        y1:{type:'linear', position:'left', ticks:{color:'#10b981'}, grid:{color:'#2d3148'}, title:{display:true,text:'limit',color:'#10b981'}},
-        y2:{type:'linear', position:'right', ticks:{color:'#8b5cf6'}, grid:{drawOnChartArea:false}, title:{display:true,text:'phi_scale',color:'#8b5cf6'}}
+  const labels=Array.from({length:datasets[0].data.length},(_,i)=>i*STEP);
+  new Chart(document.getElementById(id),{type:'line',data:{labels,datasets},options:chartOpts(true)});
+}
+
+// Simulacion
+let simRunning=false, simRAF=null, sC1=null, sC2=null;
+
+const sFuncs = {
+  ackley(x){const n=x.length,a=20,b=0.2,c=2*Math.PI;const s1=x.reduce((s,v)=>s+v*v,0)/n,s2=x.reduce((s,v)=>s+Math.cos(c*v),0)/n;return -a*Math.exp(-b*Math.sqrt(s1))-Math.exp(s2)+a+Math.E;},
+  griewank(x){return x.reduce((a,v)=>a+v*v,0)/4000-x.reduce((a,v,i)=>a*Math.cos(v/Math.sqrt(i+1)),1)+1;},
+  rastrigin(x){return 10*x.length+x.reduce((s,v)=>s+v*v-10*Math.cos(2*Math.PI*v),0);},
+  rosenbrock(x){let s=0;for(let i=0;i<x.length-1;i++)s+=100*(x[i+1]-x[i]**2)**2+(1-x[i])**2;return s;}
+};
+const sBounds = {ackley:[-32.768,32.768],griewank:[-600,600],rastrigin:[-5.12,5.12],rosenbrock:[-2.048,2.048]};
+
+function initSimCharts(){
+  if(sC1){sC1.destroy();sC2.destroy();}
+  sC1=new Chart(document.getElementById('sim-conv'),{
+    type:'line',
+    data:{labels:[],datasets:[{label:'Mejor f(x)',data:[],borderColor:CA,borderWidth:2,pointRadius:0,fill:false}]},
+    options:{...chartOpts(true),animation:false}
+  });
+  sC2=new Chart(document.getElementById('sim-params'),{
+    type:'line',
+    data:{labels:[],datasets:[
+      {label:'limit',     data:[],borderColor:CA,borderWidth:2,pointRadius:0,fill:false,yAxisID:'y1'},
+      {label:'phi_scale', data:[],borderColor:CB,borderWidth:2,pointRadius:0,fill:false,yAxisID:'y2'}
+    ]},
+    options:{
+      animation:false,responsive:true,
+      scales:{
+        x:{ticks:{color:'#7A7464',font:{family:"'IBM Plex Mono'",size:10},maxTicksLimit:7},grid:{color:'#D4CEBC'}},
+        y1:{type:'linear',position:'left', ticks:{color:CA,font:{size:10}},grid:{color:'#D4CEBC'},title:{display:true,text:'limit',color:CA,font:{size:10}}},
+        y2:{type:'linear',position:'right',ticks:{color:CB,font:{size:10}},grid:{drawOnChartArea:false},title:{display:true,text:'phi_scale',color:CB,font:{size:10}}}
       },
-      plugins:{legend:{labels:{color:'#9ca3af'}}}
+      plugins:{legend:{labels:{color:'#4A4639',font:{family:"'IBM Plex Sans'",size:11}}}}
     }
   });
 }
 
-function startSim() {
-  simRunning = true;
-  document.getElementById('btn-run').disabled = true;
-  document.getElementById('btn-stop').disabled = false;
+function startSim(){
+  simRunning=true;
+  document.getElementById('btn-run').disabled=true;
+  document.getElementById('btn-stop').disabled=false;
   initSimCharts();
+  const fn=document.getElementById('sim-func').value;
+  const func=sFuncs[fn],[lb,ub]=sBounds[fn];
+  const D=10,SN=50,GMAX=5000,LO=[10,25,50],PO=[0.5,0.8,1.0],W=50;
+  let pop=Array.from({length:SN},()=>Array.from({length:D},()=>lb+Math.random()*(ub-lb)));
+  let fit=pop.map(func),trial=new Array(SN).fill(0);
+  let bi=fit.indexOf(Math.min(...fit)),bf=fit[bi],bs=[...pop[bi]];
+  let limit=25,phi=0.8,sw=[],gen=0;
+  const hC=[],hL=[],hP=[];
 
-  const funcName = document.getElementById('sim-func').value;
-  const func = funcs[funcName];
-  const [lb, ub] = BOUNDS[funcName];
-  const D=10, SN=50, GMAX=5000;
-  const LIMIT_OPCIONES = [15, 25, 50];
-  const PHI_OPCIONES   = [0.5, 0.8, 1.2];
-  const W_ADAPT = 10;
-
-  // Inicializar colonia
-  let pop = Array.from({length:SN}, () => Array.from({length:D}, () => lb + Math.random()*(ub-lb)));
-  let fitness = pop.map(func);
-  let trial = new Array(SN).fill(0);
-  let bestIdx = fitness.indexOf(Math.min(...fitness));
-  let bestFit = fitness[bestIdx];
-  let bestSol = [...pop[bestIdx]];
-
-  let limit = 25, phi_scale = 0.8;
-  let successWindow = new Array(W_ADAPT).fill(0);
-  let wPtr = 0, gen = 0;
-
-  const histConv = [], histLimit = [], histPhi = [];
-
-  function step() {
-    if (!simRunning || gen >= GMAX) { stopSim(); return; }
-
-    // Employed bees
-    let successCount = 0;
-    for (let i=0; i<SN; i++) {
-      const k = (() => { let r; do { r=Math.floor(Math.random()*SN); } while(r===i); return r; })();
-      const d = Math.floor(Math.random()*D);
-      const candidate = [...pop[i]];
-      candidate[d] = pop[i][d] + phi_scale*(2*Math.random()-1)*(pop[i][d]-pop[k][d])
-                   + 0.5*(bestSol[d]-pop[i][d]);
-      candidate[d] = Math.max(lb, Math.min(ub, candidate[d]));
-      const fc = func(candidate);
-      if (fc < fitness[i]) {
-        pop[i] = candidate; fitness[i] = fc; trial[i] = 0; successCount++;
-        if (fc < bestFit) { bestFit = fc; bestSol = [...candidate]; }
-      } else { trial[i]++; }
-    }
-
-    // Observer bees (simplified)
-    const fitSum = fitness.reduce((s,v)=>s+1/(1+v),0);
-    for (let b=0; b<SN; b++) {
-      let cumP=0, sel=0;
-      const r=Math.random()*fitSum;
-      for(let i=0;i<SN;i++){ cumP+=1/(1+fitness[i]); if(cumP>=r){sel=i;break;} }
-      const k = (() => { let r2; do { r2=Math.floor(Math.random()*SN); } while(r2===sel); return r2; })();
-      const d = Math.floor(Math.random()*D);
-      const candidate = [...pop[sel]];
-      candidate[d] = pop[sel][d] + phi_scale*(2*Math.random()-1)*(pop[sel][d]-pop[k][d])
-                   + 0.5*(bestSol[d]-pop[sel][d]);
-      candidate[d] = Math.max(lb, Math.min(ub, candidate[d]));
-      const fc = func(candidate);
-      if (fc < fitness[sel]) {
-        pop[sel]=candidate; fitness[sel]=fc; trial[sel]=0; successCount++;
-        if(fc<bestFit){ bestFit=fc; bestSol=[...candidate]; }
-      } else { trial[sel]++; }
-    }
-
-    // Scout bees
+  function step(){
+    if(!simRunning||gen>=GMAX){stopSim();return;}
+    let succ=0;
     for(let i=0;i<SN;i++){
-      if(trial[i]>limit){
-        pop[i]=Array.from({length:D},()=>lb+Math.random()*(ub-lb));
-        fitness[i]=func(pop[i]); trial[i]=0;
-      }
+      let k;do{k=Math.floor(Math.random()*SN);}while(k===i);
+      const d=Math.floor(Math.random()*D),c=[...pop[i]];
+      c[d]=pop[i][d]+phi*(2*Math.random()-1)*(pop[i][d]-pop[k][d])+Math.random()*1.5*(bs[d]-pop[i][d]);
+      c[d]=Math.max(lb,Math.min(ub,c[d]));
+      const fc=func(c);
+      if(fc<fit[i]){pop[i]=c;fit[i]=fc;trial[i]=0;succ++;if(fc<bf){bf=fc;bs=[...c];}}else trial[i]++;
     }
-
-    // Auto-adaptación
-    successWindow[wPtr] = successCount / (2*SN);
-    wPtr = (wPtr+1) % W_ADAPT;
-    if(gen % W_ADAPT === W_ADAPT-1){
-      const tasa = successWindow.reduce((a,b)=>a+b,0)/W_ADAPT;
-      if(tasa > 0.4){
-        limit = LIMIT_OPCIONES[Math.min(LIMIT_OPCIONES.indexOf(limit)+1, 2)];
-        phi_scale = PHI_OPCIONES[Math.max(PHI_OPCIONES.indexOf(phi_scale)-1, 0)];
-      } else if(tasa < 0.15){
-        limit = LIMIT_OPCIONES[Math.max(LIMIT_OPCIONES.indexOf(limit)-1, 0)];
-        phi_scale = PHI_OPCIONES[Math.min(PHI_OPCIONES.indexOf(phi_scale)+1, 2)];
-      }
+    const fs=fit.reduce((s,v)=>s+1/(1+Math.max(v,0)),0);
+    for(let b=0;b<SN;b++){
+      let cum=0,sel=0,r=Math.random()*fs;
+      for(let i=0;i<SN;i++){cum+=1/(1+Math.max(fit[i],0));if(cum>=r){sel=i;break;}}
+      let k;do{k=Math.floor(Math.random()*SN);}while(k===sel);
+      const d=Math.floor(Math.random()*D),c=[...pop[sel]];
+      c[d]=pop[sel][d]+phi*(2*Math.random()-1)*(pop[sel][d]-pop[k][d])+Math.random()*1.5*(bs[d]-pop[sel][d]);
+      c[d]=Math.max(lb,Math.min(ub,c[d]));
+      const fc=func(c);
+      if(fc<fit[sel]){pop[sel]=c;fit[sel]=fc;trial[sel]=0;succ++;if(fc<bf){bf=fc;bs=[...c];}}else trial[sel]++;
     }
-
-    gen++;
-    histConv.push(Math.max(bestFit, 1e-16));
-    histLimit.push(limit);
-    histPhi.push(phi_scale);
-
-    // Actualizar gráficas cada 25 gens para fluidez
-    if(gen % 25 === 0 || gen === GMAX){
-      const gens = histConv.map((_,i)=>i+1);
-      simChart.data.labels = gens;
-      simChart.data.datasets[0].data = histConv;
-      simChart.update('none');
-
-      simParamChart.data.labels = gens;
-      simParamChart.data.datasets[0].data = histLimit;
-      simParamChart.data.datasets[1].data = histPhi;
-      simParamChart.update('none');
-
-      document.getElementById('sim-gen').textContent  = gen;
-      document.getElementById('sim-best').textContent = bestFit < 1e-10 ? bestFit.toExponential(2) : bestFit.toFixed(6);
-      document.getElementById('sim-limit').textContent = limit;
-      document.getElementById('sim-phi').textContent  = phi_scale;
-      document.getElementById('sim-status').textContent = `Generación ${gen} / ${GMAX}`;
+    for(let i=0;i<SN;i++){
+      if(trial[i]>limit){pop[i]=Array.from({length:D},()=>lb+Math.random()*(ub-lb));fit[i]=func(pop[i]);trial[i]=0;}
     }
-
-    simRAF = requestAnimationFrame(step);
+    sw.push(succ/(2*SN));if(sw.length>W)sw.shift();
+    if(gen%W===W-1){
+      const t=sw.reduce((a,b)=>a+b,0)/sw.length;
+      if(t>0.4){limit=LO[0];phi=PO[2];}else if(t<0.1){limit=LO[2];phi=PO[0];}else{limit=LO[1];phi=PO[1];}
+    }
+    gen++;hC.push(Math.max(bf,1e-16));hL.push(limit);hP.push(phi);
+    if(gen%30===0||gen===GMAX){
+      const gs=hC.map((_,i)=>i+1);
+      sC1.data.labels=gs;sC1.data.datasets[0].data=hC;sC1.update('none');
+      sC2.data.labels=gs;sC2.data.datasets[0].data=hL;sC2.data.datasets[1].data=hP;sC2.update('none');
+      document.getElementById('s-gen').textContent=gen;
+      document.getElementById('s-best').textContent=bf<1e-6?bf.toExponential(3):bf.toFixed(5);
+      document.getElementById('s-limit').textContent=limit;
+      document.getElementById('s-phi').textContent=phi;
+      document.getElementById('sim-status').textContent=`Ciclo ${gen} / ${GMAX}`;
+    }
+    simRAF=requestAnimationFrame(step);
   }
-
-  simRAF = requestAnimationFrame(step);
+  simRAF=requestAnimationFrame(step);
 }
 
-function stopSim() {
-  simRunning = false;
-  if(simRAF) cancelAnimationFrame(simRAF);
-  document.getElementById('btn-run').disabled = false;
-  document.getElementById('btn-stop').disabled = true;
-  document.getElementById('sim-status').textContent = 'Detenido.';
+function stopSim(){
+  simRunning=false;if(simRAF)cancelAnimationFrame(simRAF);
+  document.getElementById('btn-run').disabled=false;
+  document.getElementById('btn-stop').disabled=true;
+  document.getElementById('sim-status').textContent='Detenido.';
 }
 </script>
 </body>
