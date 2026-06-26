@@ -51,7 +51,7 @@ Todas con **D = 10 dimensiones**, colonia de **N = 100** abejas y **5 000 ciclos
 ```
 .
 ├── GABC_Fuente.py          # Código fuente principal
-├── datos_benchmark.json    # Resultados de las 30 corridas (generado por GABC_Fuente.py)
+├── datos_benchmark.json    # Resultados de las 30 corridas 
 ├── index.html              # Dashboard de visualización
 └── README.md
 ```
