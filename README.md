@@ -3,7 +3,8 @@
 **Proyecto Final · Algoritmos Bioinspirados**  
 Escuela Superior de Cómputo (ESCOM-IPN) — Ingeniería en Inteligencia Artificial  
 Profesora: Dra. Miriam Pescador Rojas
-Alumnos: 
+
+Alumnos:
 1. Dustin Aburto González
 2. Márquez Rosas José Humberto
 3. Trujillo Rodríguez Fernanda
@@ -22,14 +23,24 @@ Los resultados se comparan contra un **Algoritmo Genético** (AG) con cruza SBX 
 
 ---
 
+## Dashboard
+
+Los resultados están disponibles en el sitio web del proyecto:
+
+**[Ver dashboard](https://ferntrro.github.io/GABC_Benchmark/)**
+
+Incluye curvas de convergencia, comparativa GABC vs AG, prueba de Wilcoxon y simulación del algoritmo en tiempo real.
+
+---
+
 ## Funciones Benchmark
 
-| Función     | Dominio             | Óptimo global |
-|-------------|---------------------|---------------|
-| Ackley      | [−32.768, 32.768]¹⁰ | f(0,...,0) = 0 |
-| Griewank    | [−600, 600]¹⁰       | f(0,...,0) = 0 |
-| Rastrigin   | [−5.12, 5.12]¹⁰     | f(0,...,0) = 0 |
-| Rosenbrock  | [−2.048, 2.048]¹⁰   | f(1,...,1) = 0 |
+| Función    | Dominio             | Óptimo global    |
+|------------|---------------------|------------------|
+| Ackley     | [−32.768, 32.768]¹⁰ | f(0,...,0) = 0   |
+| Griewank   | [−600, 600]¹⁰       | f(0,...,0) = 0   |
+| Rastrigin  | [−5.12, 5.12]¹⁰     | f(0,...,0) = 0   |
+| Rosenbrock | [−2.048, 2.048]¹⁰   | f(1,...,1) = 0   |
 
 Todas con **D = 10 dimensiones**, colonia de **N = 100** abejas y **5 000 ciclos** máximos.
 
@@ -39,8 +50,9 @@ Todas con **D = 10 dimensiones**, colonia de **N = 100** abejas y **5 000 ciclos
 
 ```
 .
-├── GABC_Fuentek.py       # Código fuente principal
-├── GABC_cuaderno_explicacion.ipynb    # Notebook con explicaciones y visualizaciones
+├── GABC_Fuente.py          # Código fuente principal
+├── datos_benchmark.json    # Resultados de las 30 corridas (generado por GABC_Fuente.py)
+├── index.html              # Dashboard de visualización
 └── README.md
 ```
 
@@ -53,54 +65,29 @@ Todas con **D = 10 dimensiones**, colonia de **N = 100** abejas y **5 000 ciclos
 - SciPy
 - Matplotlib
 
-### Instalación de dependencias
-
 ```bash
 pip install numpy scipy matplotlib
-```
-
-O con el archivo de entorno:
-
-```bash
-pip install -r requirements.txt
-```
-
-**`requirements.txt`** (crear manualmente si se desea):
-```
-numpy>=1.21
-scipy>=1.7
-matplotlib>=3.4
 ```
 
 ---
 
 ## Ejecución
 
-### Ejecutar el script completo
-
 ```bash
-python gabc_benchmark.py
+python GABC_Fuente.py
 ```
 
 El script realiza en orden:
 
-1. **Verificación de óptimos**: comprueba que cada función devuelve f ≈ 0 en su óptimo conocido.
-2. **Verificación rápida del GABC**: 500 ciclos en los 4 problemas con semilla fija.
-3. **Experimento completo**: 30 corridas independientes de GABC y AG en los 4 problemas.
+1. Verificación de óptimos en las cuatro funciones.
+2. Verificación rápida del GABC (500 ciclos, semilla fija).
+3. Experimento completo: 30 corridas independientes de GABC y AG en los 4 problemas.
 
 La salida esperada termina con:
 
 ```
 ✓ Experimentos completados: 30 corridas × 4 problemas × 2 algoritmos.
 ```
-
-### Ejecutar sólo el notebook
-
-```bash
-jupyter notebook GABC_corregido.ipynb
-```
-
-El notebook incluye todas las explicaciones teóricas, pseudocódigos y gráficas de convergencia.
 
 ---
 
@@ -110,23 +97,21 @@ El notebook incluye todas las explicaciones teóricas, pseudocódigos y gráfica
 |-------------|:-------------:|:----------------------:|--------------------------------------|
 | `limit`     | 25            | {10, 25, 50}           | Ciclos sin mejora antes de abandonar |
 | `phi_scale` | 0.8           | {0.5, 0.8, 1.0}        | Escala del factor de perturbación    |
-| `psi`       | U(0, 1.5)     | —                       | Factor de guía hacia *gbest*         |
-| `SN`        | 100           | —                       | Tamaño de la colonia                 |
-| `Gmax`      | 5 000         | —                       | Máximo de ciclos                     |
+| `psi`       | U(0, 1.5)     | —                      | Factor de guía hacia *gbest*         |
+| `SN`        | 100           | —                      | Tamaño de la colonia                 |
+| `Gmax`      | 5 000         | —                      | Máximo de ciclos                     |
 
 **Regla de auto-adaptación** (cada 50 ciclos):
 
-| Tasa de éxito | `limit` | `phi_scale` | Modo        |
-|:---:|:---:|:---:|:---:|
-| > 40 %  | 10 | 1.0 | Explotación agresiva |
-| 10–40 % | 25 | 0.8 | Balance              |
-| < 10 %  | 50 | 0.5 | Exploración          |
+| Tasa de éxito | `limit` | `phi_scale` | Modo                 |
+|:-------------:|:-------:|:-----------:|----------------------|
+| > 40%         | 10      | 1.0         | Explotación agresiva |
+| 10% – 40%     | 25      | 0.8         | Balance              |
+| < 10%         | 50      | 0.5         | Exploración          |
 
 ---
 
 ## Ecuación Principal (GABC)
-
-La perturbación de cada dimensión `j` de la abeja `i` sigue:
 
 ```
 v_ij = x_ij + phi_ij * (x_ij - x_kj) + psi_ij * (gbest_j - x_ij)
@@ -139,5 +124,3 @@ donde `k ≠ i` es un vecino aleatorio, `phi ~ U(-phi_scale, phi_scale)` y `psi 
 ## Referencia
 
 Zhu, G., & Kwong, S. (2010). *Gbest-guided artificial bee colony algorithm for numerical function optimization*. Applied Mathematics and Computation, 217(7), 3166–3173.
-
----
